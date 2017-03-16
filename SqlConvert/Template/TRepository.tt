@@ -1,0 +1,110 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System" #>   
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Runtime.Serialization" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Threading.Tasks" #>
+using SH3H.SDK.DataAccess.Repo;
+using SH3H.WAP.<#=ModelSpaceName #>.DataAccess.Repo.Contracts;
+using SH3H.WAP.<#=ModelSpaceName #>.Model;
+using System.Collections.Generic;
+
+namespace <#= Namespace #>
+{
+    /// <summary>
+    /// 定义模型数据仓库
+    /// </summary>
+    public class <#=ClassName #>Repository: Repository<I<#=ClassName #>Storage>, I<#=ClassName #>Repository
+    {
+		/// <summary>
+        /// 新增模型
+        /// </summary>
+        /// <param name="entity">添加模型</param>
+        /// <returns>新增的模型对象</returns>
+        public <#=ClassName #> Create<#=ClassName #>(<#=ClassName #> entity)
+        {
+            return Storage.Create<#=ClassName #>(entity);
+        }
+
+        /// <summary>
+        /// 修改模型
+        /// </summary>
+        /// <param name="id">更新查询条件为编号</param>
+        /// <param name="entity">更新对象模型</param>
+        /// <returns>返回是否更新成功Boolean对象</returns>
+        public <#=ClassName #> Update<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName.ToLower()#>,
+<#				}#> 
+				<#=ClassName #> entity
+		)
+        {
+            return Storage.Update<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpName.ToLower()#>,
+<#				}#> 
+				entity
+			);
+        }
+
+        /// <summary>
+        /// 模型删除操作
+        /// </summary>
+        /// <param name="id">模型编号</param>
+        /// <returns>是否删除成功Boolean对象</returns>
+        public bool Delete<#=ClassName #>(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+		)
+        {
+            return Storage.Delete<#=ClassName #>(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>					<#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+			);
+        }
+
+        /// <summary>
+        /// 获取所有模型
+        /// </summary>
+        /// <returns>模型对象</returns>
+        public IEnumerable<<#=ClassName #>> Get<#=ClassName #>All()
+        {
+            return Storage.Get<#=ClassName #>All();
+        }
+
+        /// <summary>
+        /// 获取指定模型
+        /// </summary>
+        /// <param name="id">查询条件为ID</param>
+        /// <returns>返回查询后模型的单个结果</returns>
+        public <#=ClassName #> Get<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+		)
+        {
+            return Storage.Get<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>					<#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+			);
+        }
+
+    }
+}

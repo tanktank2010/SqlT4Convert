@@ -1,0 +1,77 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System" #>   
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Runtime.Serialization" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Threading.Tasks" #>
+using SH3H.SDK.Share;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Text;
+using System.Threading.Tasks;
+						
+namespace <#= Namespace #>
+{
+    /// <summary>
+    /// 模型
+    /// </summary>
+    [Serializable]
+    [DataContract(Namespace = Consts.NAMESPACE + "/Model/<#=ModelSpaceName #>")]
+    public class <#=ClassName #>Dto
+    {
+		<#
+		   foreach (var column in Columns)
+            { 
+#>        /// <summary>
+        /// 
+        /// </summary> 
+        [DataMember(Name="<#=column.JsonName #>")]
+        public <#=column.CSharpType #> <#=column.CSharpName #> { get; set; }	
+
+<#			}
+		#>
+		
+
+		/// <summary>
+        /// Model转DTO
+        /// </summary>
+        /// <param name=""model""></param>
+        /// <returns></returns>
+        public static <#=ClassName #>Dto FromModel(<#=ClassName #> model)
+        {
+            <#=ClassName #>Dto dto = new <#=ClassName #>Dto()
+            {
+				   <#
+		   foreach (var column in Columns)
+            { 
+#>      				<#=column.CSharpName#> = model.<#=column.CSharpName#>,
+<#			}
+		#>
+            };
+
+            return dto;
+        }
+
+        /// <summary>
+        /// DTO转Model
+        /// </summary>
+        /// <returns></returns>
+        public <#=ClassName #> ToModel()
+        {
+            <#=ClassName #> model = new <#=ClassName #>();
+<#
+		   foreach (var column in Columns)
+            { 
+#>      				model.<#=column.CSharpName#> = this.<#=column.CSharpName#>;
+<#			}
+		#>
+            return model;
+        }
+
+
+    }
+}

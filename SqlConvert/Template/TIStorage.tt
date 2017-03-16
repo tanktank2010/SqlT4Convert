@@ -1,0 +1,74 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System" #>   
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Runtime.Serialization" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Threading.Tasks" #>
+using SH3H.WAP.<#=ModelSpaceName #>.Model;
+using System.Collections.Generic;
+						
+namespace <#= Namespace #>
+{
+    /// <summary>
+    /// 定义模型操作接口
+    /// </summary>
+    public interface I<#=ClassName #>Storage
+    {
+		/// <summary>
+        /// 新增模型
+        /// </summary>
+        /// <param name="entity">要增加的模型实体对象</param>
+        /// <returns>增加的模型实体对象</returns>
+        <#=ClassName #> Create<#=ClassName #>(<#=ClassName #> entity);
+
+        /// <summary>
+        /// 修改模型
+        /// </summary>
+        /// <param name="id">模型编号</param>
+        /// <param name="entity">要修改的模型实体对象</param>
+        /// <returns>修改后的模型实体对象</returns>
+        <#=ClassName #> Update<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName.ToLower()#>,
+<#				}#> 
+				<#=ClassName #> entity
+		);
+
+        /// <summary>
+        /// 删除模型
+        /// </summary>
+        /// <param name="id">模型编号</param>
+        /// <returns>是否删除成功</returns>
+        bool Delete<#=ClassName #>(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+		);
+
+        /// <summary>
+        /// 获取所有模型
+        /// </summary>
+        /// <returns>所有公告板对象集合</returns>
+        IEnumerable<<#=ClassName #>> Get<#=ClassName #>All();
+
+        /// <summary>
+        /// 获取指定模型
+        /// </summary>
+        /// <param name="id">模型编号</param>
+        /// <returns>模型</returns>
+        <#=ClassName #> Get<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+		);
+
+    }
+}

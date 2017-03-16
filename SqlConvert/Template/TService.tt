@@ -1,0 +1,173 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System" #>   
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Runtime.Serialization" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Threading.Tasks" #>
+using SH3H.WAP.<#=ModelSpaceName #>.Model.Dto;
+using SH3H.WAP.<#=ModelSpaceName #>.Model;	   
+using SH3H.WAP.<#=ModelSpaceName #>.Contracts;
+using SH3H.WAP.<#=ModelSpaceName #>.DataAccess.Repo.Contracts;
+using SH3H.SDK.Service.Core;
+using SH3H.SDK.Definition.Exceptions;
+using SH3H.<#=ShareNamespace #>.Share;	
+using System.Collections.Generic;		
+using System.Linq;
+	
+namespace <#= Namespace #>
+{
+    /// <summary>
+    /// 定义模型接口
+    /// </summary>
+    public class <#=ClassName #>ServiceImpl : BaseService, I<#=ClassName #>Service
+    {
+		private I<#=ClassName #>Repository _<#=JsonName #>Repository;
+
+		public <#=ClassName #>ServiceImpl(I<#=ClassName #>Repository <#=JsonName #>Repository)
+        {
+            _<#=JsonName #>Repository = <#=JsonName #>Repository;
+        }
+
+
+		/// <summary>
+        /// 新增模型
+        /// </summary>
+        /// <param name="entity">要增加的模型实体对象</param>
+        /// <returns>增加的模型实体对象</returns>
+       public <#=ClassName #>Dto Create<#=ClassName #>(<#=ClassName #>Dto entity){
+            if (entity == null)
+                throw new WapException(StateCode.CODE_ARGUMENT_NULL, "模型为空！");
+
+            var result = _<#=JsonName #>Repository.Create<#=ClassName #>(entity.ToModel());
+            return <#=ClassName #>Dto.FromModel(result);
+	   }
+
+        /// <summary>
+        /// 修改模型
+        /// </summary>
+        /// <param name="id">模型编号</param>
+        /// <param name="entity">要修改的模型实体对象</param>
+        /// <returns>修改后的模型实体对象</returns>
+        public  <#=ClassName #>Dto Update<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName.ToLower()#>,
+<#				}#> 
+				<#=ClassName #>Dto entity
+		){
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+					if(column.CSharpType=="int"){
+					
+#>				if (<#=column.CSharpName.ToLower()#> <= 0)
+					throw new WapException(StateCode.CODE_ARGUMENT_LIMIT_ERROR, "模型<#=column.CSharpName#>小于零！");
+<#					}
+					if(column.CSharpType=="string"){
+					
+#>				if (String.IsNullOrEmpty(<#=column.CSharpName.ToLower()#>))
+					throw new WapException(StateCode.CODE_ARGUMENT_LIMIT_ERROR, "模型<#=column.CSharpName#>不能为空！");
+<#					}
+				}#> 
+            if (entity == null)
+                throw new WapException(StateCode.CODE_ARGUMENT_NULL, "模型为空！");
+
+            var result = _<#=JsonName #>Repository.Update<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>							<#=column.CSharpName.ToLower()#>,
+<#				}#> 
+							entity.ToModel()
+						);
+            return <#=ClassName #>Dto.FromModel(result);
+	   }
+
+        /// <summary>
+        /// 删除模型
+        /// </summary>
+        /// <param name="id">模型编号</param>
+        /// <returns>是否删除成功</returns>
+        public  bool Delete<#=ClassName #>(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+		){
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+					if(column.CSharpType=="int"){
+					
+#>				if (<#=column.CSharpName.ToLower()#> <= 0)
+					throw new WapException(StateCode.CODE_ARGUMENT_LIMIT_ERROR, "模型<#=column.CSharpName#>小于零！");
+<#					}
+					if(column.CSharpType=="string"){
+					
+#>				if (String.IsNullOrEmpty(<#=column.CSharpName.ToLower()#>))
+					throw new WapException(StateCode.CODE_ARGUMENT_LIMIT_ERROR, "模型<#=column.CSharpName#>不能为空！");
+<#					}
+				}#> 
+
+            var result = _<#=JsonName #>Repository.Delete<#=ClassName #>(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+			);
+            return result;
+	   }
+
+        /// <summary>
+        /// 获取所有模型
+        /// </summary>
+        /// <returns>所有公告板对象集合</returns>
+        public IEnumerable<<#=ClassName #>Dto> Get<#=ClassName #>All(){
+            var result = _<#=JsonName #>Repository.Get<#=ClassName #>All();
+            return result.Select(b => <#=ClassName #>Dto.FromModel(b)).ToList();
+		}
+
+        /// <summary>
+        /// 获取指定模型
+        /// </summary>
+        /// <param name="id">模型编号</param>
+        /// <returns>模型</returns>
+        public <#=ClassName #>Dto Get<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+		){
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+					if(column.CSharpType=="int"){
+					
+#>				if (<#=column.CSharpName.ToLower()#> <= 0)
+					throw new WapException(StateCode.CODE_ARGUMENT_LIMIT_ERROR, "模型<#=column.CSharpName#>小于零！");
+<#					}
+					if(column.CSharpType=="string"){
+					
+#>				if (String.IsNullOrEmpty(<#=column.CSharpName.ToLower()#>))
+					throw new WapException(StateCode.CODE_ARGUMENT_LIMIT_ERROR, "模型<#=column.CSharpName#>不能为空！");
+<#					}
+				}#> 
+
+				var result = _<#=JsonName #>Repository.Get<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>					<#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+				);
+				return <#=ClassName #>Dto.FromModel(result);
+		}
+
+    }
+}

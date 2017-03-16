@@ -1,0 +1,276 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System" #>   
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Runtime.Serialization" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Threading.Tasks" #>
+using Microsoft.Practices.EnterpriseLibrary.Data;
+using SH3H.SDK.DataAccess.Db;
+using SH3H.SDK.Infrastructure.Logging;
+using SH3H.SDK.Share;
+using SH3H.WAP.<#=ModelSpaceName #>.Model;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using SH3H.SharpFrame.Data;
+using SH3H.SDK.Definition.Exceptions;
+using SH3H.<#= ShareNamespace #>.Share;
+			 
+namespace <#= Namespace #>
+{
+    /// <summary>
+    /// 定义模型SqlServer数据库访问对象
+    /// </summary>
+	public class <#=ClassName #>Storage : BaseAccess<<#=ClassName #>>, I<#=ClassName #>Storage
+    {
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        public <#=ClassName #>Storage()
+            : base(SH3H.SDK.Share.Consts.CONFIGURE_DATABASE_CONNECTION_STRING) { }
+
+        /// <summary>
+        /// 新增模型
+        /// </summary>
+        /// <param name="entity">模型实体</param>
+        /// <returns>模型实体</returns>
+        public <#=ClassName #> Create<#=ClassName #>(<#=ClassName #> entity)
+        {
+            try
+            {
+                string sqlText = @" INSERT INTO <#=TableName #>(
+<#				for (int i = 0; i < OtherColumns.Count; i++)
+				{
+					var column = OtherColumns[i];
+#>									<#=column.ColumnName#><#=(i==OtherColumns.Count-1)?"":"," #> 
+<#				}#>					) 
+                                    VALUES(
+<#				for (int i = 0; i < OtherColumns.Count; i++)
+				{
+					var column = OtherColumns[i];
+#>									@<#=column.ColumnName#><#=(i==OtherColumns.Count-1)?"":"," #> 
+<#				}#>					)
+                                SELECT @@IDENTITY;";
+                using (var cmd = Database.GetSqlStringCommand(sqlText))
+                {
+<#				for (int i = 0; i < OtherColumns.Count; i++)
+				{
+					var column = OtherColumns[i];
+					if(column.CSharpName.Contains("CreateTime")){
+#>					 Database.AddInParameter(cmd, "@<#=column.ColumnName#>", DbType.<#=column.SQLType#>, DateTime.Now); 
+<#					}
+					else{
+#>					 Database.AddInParameter(cmd, "@<#=column.ColumnName#>", DbType.<#=column.SQLType#>, entity.<#=column.CSharpName#>); 
+<#					}
+				}#>					
+                    int id = ExecuteScalar<int>(cmd);
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>					entity.<#=column.CSharpName#> = id;
+<#				}#>
+                    return entity;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.Get().Throw(ex);
+                throw new WapException(StateCode.CODE_SQL_EXECUTE_ERROR, "新增模型失败");
+            }
+        }
+
+        /// <summary>
+        /// 修改模型
+        /// </summary>
+        /// <param name="id">模型id</param>
+        /// <param name="entity">模型实体</param>
+        /// <returns>模型实体</returns>
+        public <#=ClassName #> Update<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName#>,
+<#				}#>
+				 <#=ClassName #> entity)
+        {
+            try
+            {
+                string sqlText = @" UPDATE <#=TableName #> 
+                      SET 
+<#				for (int i = 0; i < OtherColumns.Count; i++)
+				{	 
+					var column = OtherColumns[i];
+#>						  <#=column.ColumnName#>=@<#=column.ColumnName#><#=(i==OtherColumns.Count-1)?"":"," #> 
+<#				}#>
+                          WHERE 1=1
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>						     And <#=column.ColumnName#>=@<#=column.ColumnName#>
+<#				}#>";
+                using (var cmd = Database.GetSqlStringCommand(sqlText))
+                {
+<#				for (int i = 0; i < Columns.Count; i++)
+				{
+					var column = Columns[i];
+					if(column.CSharpName.Contains("UpdateTime")){
+#>					Database.AddInParameter(cmd, "@<#=column.ColumnName#>", DbType.<#=column.SQLType#>, DateTime.Now); 
+<#					}
+					else{
+#>					Database.AddInParameter(cmd, "@<#=column.ColumnName#>", DbType.<#=column.SQLType#>, entity.<#=column.CSharpName#>); 
+<#					}
+				}#>
+                    ExecuteNonQuery(cmd);
+                    return entity;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.Get().Throw(ex);
+                throw new WapException(StateCode.CODE_SQL_EXECUTE_ERROR, "修改模型失败");
+            }
+        }
+
+        /// <summary>
+        /// 删除模型
+        /// </summary>
+        /// <param name="id">模型id</param>
+        /// <returns>是否删除成功</returns>
+        public bool Delete<#=ClassName #>(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>					<#=column.CSharpType#> <#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #>
+<#				}#>
+		)
+        {
+            try
+            {
+                string sqlText = @"DELETE FROM <#=TableName #> 
+								   WHERE 1=1
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+					
+#>									And	<#=column.ColumnName#>=@<#=column.ColumnName#> 
+<#					
+				}#>
+				";
+                using (var cmd = Database.GetSqlStringCommand(sqlText))
+                {
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>					Database.AddInParameter(cmd, "@<#=column.ColumnName#>", DbType.<#=column.SQLType#>,<#=column.ColumnName.ToLower()#>); 
+<#				}#>
+                    ExecuteNonQuery(cmd);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.Get().Throw(ex);
+                throw new WapException(StateCode.CODE_SQL_EXECUTE_ERROR, "删除模型失败");
+            }
+        }
+
+        /// <summary>
+        /// 获取所有模型
+        /// </summary>
+        /// <returns>所有模型集合</returns>
+        public IEnumerable<<#=ClassName #>> Get<#=ClassName #>All()
+        {
+            try
+            {
+                string sqlText = @"SELECT * FROM <#=TableName #>";
+                using (var cmd = Database.GetSqlStringCommand(sqlText))
+                {
+                    var result = SelectList(cmd);
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.Get().Throw(ex);
+                throw new WapException(StateCode.CODE_SQL_EXECUTE_ERROR, "获取所有模型失败");
+            }
+        }
+
+        /// <summary>
+        /// 获取指定模型
+        /// </summary>
+        /// <param name="id">模型id</param>
+        /// <returns>模型实体</returns>
+        public <#=ClassName #> Get<#=ClassName #>ById(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+		)
+        {
+            try
+            {
+                string sqlText = @"SELECT * 
+								   FROM <#=TableName #> 
+								   WHERE 1=1
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+					
+#>									And	<#=column.ColumnName#>=@<#=column.ColumnName#> 
+<#					
+				}#>
+				";
+                using (var cmd = Database.GetSqlStringCommand(sqlText))
+                {
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>					Database.AddInParameter(cmd, "@<#=column.ColumnName#>", DbType.<#=column.SQLType#>,<#=column.ColumnName.ToLower()#>); 
+<#				}#>
+                    return SelectSingle(cmd);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.Get().Throw(ex);
+                throw new WapException(StateCode.CODE_SQL_EXECUTE_ERROR, "获取指定模型失败");
+            }
+        }
+
+
+
+        /// <summary>
+        /// 根据<see cref="IDataReader"/>数据读取器构建对象实体
+        /// </summary>
+        /// <param name="reader">数据读取器</param>
+        /// <param name="instance">模型实例</param>
+        /// <returns>如果构建对象成功返回对象实例，否则异常</returns>
+        public override <#=ClassName #> Build(IDataReader reader, <#=ClassName #> instance)
+        {
+            try
+            {
+<#				for (int i = 0; i < Columns.Count; i++)
+				{
+					var column = Columns[i];
+					if(!column.Null){
+#>				instance.<#=column.CSharpName #> = reader.GetReaderValue<<#=column.CSharpType #>>("<#=column.ColumnName #>"); 
+<#					}
+					else{
+#>				instance.<#=column.CSharpName #> = reader.GetReaderValue<<#=column.CSharpType #>>("<#=column.ColumnName #>", default(<#=column.CSharpType #>), true); 
+<#					}
+				}#>
+
+                return instance;
+            }
+            catch (Exception ex)
+            {
+                LogManager.Get().Throw(ex);
+                throw new WapException(StateCode.CODE_MODEL_CONVERT_ERROR, "模型模型转换失败");
+            }
+        }
+    }
+}

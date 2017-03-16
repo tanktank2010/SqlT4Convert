@@ -1,0 +1,143 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System" #>   
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Runtime.Serialization" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Threading.Tasks" #>
+using SH3H.SDK.WebApi.Controllers;
+using SH3H.SDK.WebApi.Core;
+using SH3H.SDK.WebApi.Core.Models;
+using SH3H.WAP.<#=ModelSpaceName #>.Contracts;
+using SH3H.WAP.<#=ModelSpaceName #>.Model.Dto;	  
+using SH3H.WAP.<#=ModelSpaceName #>.Model;
+using SH3H.<#=ShareNamespace #>.Share;
+using System.Web.Http;
+
+namespace <#= Namespace #>
+{
+     /// <summary>
+    ///服务控制器
+    /// </summary>
+    [Resource("<#=JsonName #>ServiceRes")]
+    [RoutePrefix(Consts.URL_PREFIX_WAP + "/<#=ModelSpaceName.ToLower() #>")]
+    public class <#=ClassName #>Controller : BaseController<I<#=ClassName #>Service>
+    {
+		/// <summary>
+        /// 新增模型
+        /// </summary>
+        /// <param name="entity">要增加的模型实体对象</param>
+        /// <returns>增加的模型实体对象</returns>
+		[HttpPost]
+		[Route("<#=ClassName.ToLower() #>")]
+		[ActionName("create<#=ClassName #>")]
+		public WapResponse<<#=ClassName #>Dto> Create<#=ClassName #>([FromBody]<#=ClassName #>Dto entity){
+            var result = Service.Create<#=ClassName #>(entity);
+            return new WapResponse<<#=ClassName #>Dto>(result);
+		}
+
+        /// <summary>
+        /// 修改模型
+        /// </summary>
+        /// <param name="id">模型编号</param>
+        /// <param name="entity">要修改的模型实体对象</param>
+        /// <returns>修改后的模型实体对象</returns>
+		[HttpPut]
+		[Route("<#=ClassName.ToLower() #><#
+			   for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+				#>/{<#=column.CSharpName.ToLower()#>}<#
+				}
+		#>")]
+		[ActionName("update<#=ClassName #>")]
+        public  WapResponse<<#=ClassName #>Dto> Update<#=ClassName #>ById(<#
+				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+				#><#=column.CSharpType#> <#=column.CSharpName.ToLower()#>,<#
+				}#> <#=ClassName #>Dto entity)
+		{
+            return new WapResponse<<#=ClassName #>Dto>(Service.Update<#=ClassName #>ById(<#
+			   for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+				#><#=column.CSharpName.ToLower()#>,<# 
+				}
+		#> entity));
+	   }
+
+        /// <summary>
+        /// 删除模型
+        /// </summary>
+        /// <param name="id">模型编号</param>
+        /// <returns>是否删除成功</returns>
+		[HttpDelete]
+		[Route("<#=ClassName.ToLower() #><#
+			   for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+				#>/{<#=column.CSharpName.ToLower()#>}<#
+				}
+		#>")]
+		[ActionName("delete<#=ClassName #>")]
+        public  WapBoolean Delete<#=ClassName #>(
+<#				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+#>				<#=column.CSharpType#> <#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #> 
+<#				}#>
+		){
+			 return new WapBoolean(Service.Delete<#=ClassName #>(<#
+			   for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+				#><#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #><#
+				}
+		#>));
+	   }
+
+        /// <summary>
+        /// 获取所有模型
+        /// </summary>
+        /// <returns>所有公告板对象集合</returns>
+		[HttpGet]
+		[Route("<#=ClassName.ToLower() #>")]
+		[ActionName("get<#=ClassName #>s")]
+        public WapCollection<<#=ClassName #>Dto> Get<#=ClassName #>All(){
+            return new WapCollection<<#=ClassName #>Dto>(Service.Get<#=ClassName #>All());
+		}
+
+        /// <summary>
+        /// 获取指定模型
+        /// </summary>
+        /// <param name="id">模型编号</param>
+        /// <returns>模型</returns>
+		[HttpGet]
+		[Route("<#=ClassName.ToLower() #><#
+			   for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+				#>/{<#=column.CSharpName.ToLower()#>}<#
+				}
+		#>")]
+		[ActionName("get<#=ClassName #>")]
+        public WapResponse<<#=ClassName #>Dto> Get<#=ClassName #>ById(<#
+				for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+				#><#=column.CSharpType#> <#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #><# 
+				}#>)
+		{
+				return new WapResponse<<#=ClassName #>Dto>(Service.Get<#=ClassName #>ById(<#
+			   for (int i = 0; i < PkColumns.Count; i++)
+				{
+					var column = PkColumns[i];
+				#><#=column.CSharpName.ToLower()#><#=(i==PkColumns.Count-1)?"":"," #><#
+				}
+		#>));
+		}
+
+    }
+}
